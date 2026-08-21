@@ -1,0 +1,6 @@
+{
+  "name": "Fiscal Questões",
+  "description": "Plataforma otimizada para estudos de concursos fiscais com sessão de treino ativo de questões, catálogo estruturado de disciplinas e tópicos, e importador JSON em lote.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

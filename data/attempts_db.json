@@ -1,0 +1,225 @@
+[
+  [
+    "test_user_persist",
+    [
+      {
+        "id": "attempt_1786543707106_71lq",
+        "userId": "test_user_persist",
+        "questionId": "CE-V01-Q0005",
+        "questionVersion": 1,
+        "selectedAnswer": "A",
+        "isCorrect": true,
+        "mode": "study",
+        "sessionId": "session_1786543707048_jehk5",
+        "timestamp": 1786543707106,
+        "responseTimeSeconds": 0,
+        "volume": "Conhecimentos Específicos",
+        "topic": "Fundamentos da fiscalização e poder de polícia",
+        "subtopic": "Finalidade do Código, dever institucional e colaboração",
+        "difficulty": "media",
+        "type": "lei_seca"
+      },
+      {
+        "id": "attempt_1786543722215_5kng",
+        "userId": "test_user_persist",
+        "questionId": "CE-V02-Q0023",
+        "questionVersion": 1,
+        "selectedAnswer": "A",
+        "isCorrect": false,
+        "mode": "study",
+        "sessionId": "session_1786543721931_vfd7i",
+        "timestamp": 1786543722215,
+        "responseTimeSeconds": 0,
+        "volume": "Conhecimentos Específicos",
+        "topic": "Vistoria administrativa",
+        "subtopic": "Inspeção prévia e certificado",
+        "difficulty": "media",
+        "type": "lei_seca"
+      }
+    ]
+  ],
+  [
+    "test_user_persist_2",
+    [
+      {
+        "id": "attempt_1786543768931_8r27",
+        "userId": "test_user_persist_2",
+        "questionId": "CE-V04-Q0044",
+        "questionVersion": 1,
+        "selectedAnswer": "A",
+        "isCorrect": false,
+        "mode": "study",
+        "sessionId": "session_1786543768631_3gx9e",
+        "timestamp": 1786543768931,
+        "responseTimeSeconds": 0,
+        "volume": "Conhecimentos Específicos",
+        "topic": "Uso desconforme, EIV e licenciamento ambiental",
+        "subtopic": "LO ou CDL",
+        "difficulty": "media",
+        "type": "lei_seca"
+      }
+    ]
+  ],
+  [
+    "u123",
+    [
+      {
+        "id": "attempt_1786543780609_9rby",
+        "userId": "u123",
+        "questionId": "CE-V01-Q0020",
+        "questionVersion": 1,
+        "selectedAnswer": "A",
+        "isCorrect": false,
+        "mode": "study",
+        "sessionId": "session_1786543780516_k8hjy",
+        "timestamp": 1786543780609,
+        "responseTimeSeconds": 0,
+        "volume": "Conhecimentos Específicos",
+        "topic": "Higiene pública, passeios, logradouros e resíduos",
+        "subtopic": "Passeios, logradouros, drenagem e descarte de resíduos",
+        "difficulty": "media",
+        "type": "lei_seca"
+      }
+    ]
+  ],
+  [
+    "u123_test",
+    [
+      {
+        "id": "attempt_1786543786983_7n39",
+        "userId": "u123_test",
+        "questionId": "CE-V02-Q0075",
+        "questionVersion": 1,
+        "selectedAnswer": "A",
+        "isCorrect": true,
+        "mode": "study",
+        "sessionId": "session_1786543786564_agai9",
+        "timestamp": 1786543786983,
+        "responseTimeSeconds": 0,
+        "volume": "Conhecimentos Específicos",
+        "topic": "Intimação, prazos e notificação",
+        "subtopic": "Elementos da intimação",
+        "difficulty": "media",
+        "type": "lei_seca"
+      }
+    ]
+  ],
+  [
+    "u_debug",
+    [
+      {
+        "id": "attempt_1786543798001_oygp",
+        "userId": "u_debug",
+        "questionId": "CE-V02-Q0092",
+        "questionVersion": 1,
+        "selectedAnswer": "A",
+        "isCorrect": false,
+        "mode": "study",
+        "sessionId": "session_1786543797693_j7vbe",
+        "timestamp": 1786543798001,
+        "responseTimeSeconds": 0,
+        "volume": "Conhecimentos Específicos",
+        "topic": "Intimação, prazos e notificação",
+        "subtopic": "Notificação",
+        "difficulty": "media",
+        "type": "lei_seca"
+      }
+    ]
+  ],
+  [
+    "u_debug_2",
+    [
+      {
+        "id": "attempt_1786543814503_qpeb",
+        "userId": "u_debug_2",
+        "questionId": "CE-V02-Q0003",
+        "questionVersion": 1,
+        "selectedAnswer": "A",
+        "isCorrect": false,
+        "mode": "study",
+        "sessionId": "session_1786543814199_meq24",
+        "timestamp": 1786543814503,
+        "responseTimeSeconds": 0,
+        "volume": "Conhecimentos Específicos",
+        "topic": "Atividade prática do fiscal e documentos",
+        "subtopic": "Mapa legal dos instrumentos",
+        "difficulty": "media",
+        "type": "lei_seca"
+      }
+    ]
+  ],
+  [
+    "u_debug_3",
+    [
+      {
+        "id": "attempt_1786543830804_s5qn",
+        "userId": "u_debug_3",
+        "questionId": "CE-V02-Q0047",
+        "questionVersion": 1,
+        "selectedAnswer": "A",
+        "isCorrect": false,
+        "mode": "study",
+        "sessionId": "session_1786543826470_uqjw0",
+        "timestamp": 1786543830804,
+        "responseTimeSeconds": 0,
+        "volume": "Conhecimentos Específicos",
+        "topic": "Registro objetivo e prova administrativa",
+        "subtopic": "Fato, inferência e conclusão",
+        "difficulty": "media",
+        "type": "lei_seca"
+      }
+    ]
+  ],
+  [
+    "H9q33eco8Qday1dAygoyTbORWcj2",
+    [
+      {
+        "id": "attempt_1786543971816_4rwm",
+        "userId": "H9q33eco8Qday1dAygoyTbORWcj2",
+        "questionId": "CE-V02-Q0014",
+        "questionVersion": 1,
+        "selectedAnswer": "B",
+        "isCorrect": false,
+        "mode": "study",
+        "sessionId": "session_1786543868731_rud8o",
+        "timestamp": 1786543971817,
+        "responseTimeSeconds": 103,
+        "volume": "Conhecimentos Específicos",
+        "topic": "Vistoria administrativa",
+        "subtopic": "Hipóteses de vistoria",
+        "difficulty": "media",
+        "type": "lei_seca"
+      }
+    ]
+  ],
+  [
+    "test_caderno_count",
+    [
+      {
+        "id": "attempt_1786544142522_k72j",
+        "userId": "test_caderno_count",
+        "questionId": "CE-V01-Q0001",
+        "questionVersion": 1,
+        "selectedAnswer": "A",
+        "isCorrect": true,
+        "mode": "study",
+        "sessionId": "session_1786544141827_if68w",
+        "timestamp": 1786544142522,
+        "responseTimeSeconds": 0,
+        "volume": "Conhecimentos Específicos",
+        "topic": "Fundamentos da fiscalização e poder de polícia",
+        "subtopic": "Mapa normativo e método de interpretação",
+        "difficulty": "media",
+        "type": "lei_seca"
+      }
+    ]
+  ],
+  [
+    "123",
+    []
+  ],
+  [
+    "test",
+    []
+  ]
+]

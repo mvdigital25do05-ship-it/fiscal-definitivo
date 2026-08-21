@@ -1,0 +1,151 @@
+{
+  "entities": {
+    "Question": {
+      "title": "Question",
+      "description": "Uma questão tributária ou fiscal cadastrada no banco de dados.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Identificador único da questão" },
+        "version": { "type": "number", "description": "Versão incremental da questão" },
+        "volume": { "type": "string", "description": "Disciplina ou volume temático" },
+        "topic": { "type": "string", "description": "Tópico temático" },
+        "subtopic": { "type": "string", "description": "Subtópico específico opcional" },
+        "difficulty": { "type": "string", "enum": ["facil", "media", "dificil"], "description": "Nível de dificuldade" },
+        "type": { "type": "string", "description": "Tipo de questão (lei_seca, doutrina, jurisprudencia, etc.)" },
+        "status": { "type": "string", "enum": ["revisada", "rascunho", "desativada"], "description": "Status da questão" },
+        "statement": { "type": "string", "description": "Enunciado da questão" },
+        "options": {
+          "type": "object",
+          "properties": {
+            "A": { "type": "string" },
+            "B": { "type": "string" },
+            "C": { "type": "string" },
+            "D": { "type": "string" },
+            "E": { "type": "string" }
+          },
+          "required": ["A", "B", "C", "D"]
+        },
+        "answer": { "type": "string", "enum": ["A", "B", "C", "D", "E"], "description": "Gabarito oficial" },
+        "explanation": { "type": "string", "description": "Comentário e justificativa" },
+        "legalBasis": { "type": "string", "description": "Fundamento legal e dispositivos" },
+        "tags": { "type": "array", "description": "Tags de pesquisa" },
+        "createdAt": { "type": "number", "description": "Timestamp de criação" },
+        "updatedAt": { "type": "number", "description": "Timestamp de atualização" }
+      },
+      "required": ["id", "version", "volume", "topic", "statement", "options", "answer"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Perfil do usuário e credenciais de estudo.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "description": "E-mail do usuário" },
+        "displayName": { "type": "string", "description": "Nome de exibição" },
+        "photoURL": { "type": "string", "description": "Avatar do usuário" },
+        "role": { "type": "string", "enum": ["user", "admin"], "description": "Função no sistema" },
+        "createdAt": { "type": "number", "description": "Data de criação" },
+        "lastLoginAt": { "type": "number", "description": "Último login" }
+      },
+      "required": ["uid", "email"]
+    },
+    "QuestionAttempt": {
+      "title": "QuestionAttempt",
+      "description": "Registro de resposta submetida por um estudante.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "questionId": { "type": "string" },
+        "questionVersion": { "type": "number" },
+        "selectedAnswer": { "type": "string" },
+        "isCorrect": { "type": "boolean" },
+        "mode": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "responseTimeSeconds": { "type": "number" },
+        "volume": { "type": "string" },
+        "topic": { "type": "string" },
+        "subtopic": { "type": "string" },
+        "difficulty": { "type": "string" },
+        "type": { "type": "string" }
+      },
+      "required": ["id", "userId", "questionId", "selectedAnswer", "isCorrect"]
+    },
+    "UserFavorite": {
+      "title": "UserFavorite",
+      "description": "Marcadores de favoritos e revisão do usuário.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "questionId": { "type": "string" },
+        "bookmarked": { "type": "boolean" },
+        "needsReview": { "type": "boolean" },
+        "personalNotes": { "type": "string" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["userId", "questionId"]
+    },
+    "StudySession": {
+      "title": "StudySession",
+      "description": "Sessão de resolução de questões ou simulado.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "mode": { "type": "string" },
+        "title": { "type": "string" },
+        "questionIds": { "type": "array" },
+        "currentIndex": { "type": "number" },
+        "completed": { "type": "boolean" },
+        "startedAt": { "type": "number" },
+        "completedAt": { "type": "number" },
+        "timeSpentSeconds": { "type": "number" }
+      },
+      "required": ["id", "userId", "questionIds"]
+    },
+    "ImportBatch": {
+      "title": "ImportBatch",
+      "description": "Registro de lote de questões importadas via JSON.",
+      "type": "object",
+      "properties": {
+        "batchId": { "type": "string" },
+        "datasetName": { "type": "string" },
+        "importedBy": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "totalQuestions": { "type": "number" },
+        "insertedCount": { "type": "number" },
+        "updatedCount": { "type": "number" },
+        "ignoredCount": { "type": "number" },
+        "errorCount": { "type": "number" }
+      },
+      "required": ["batchId", "totalQuestions", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/questions/{questionId}": {
+      "schema": { "$ref": "#/entities/Question" },
+      "description": "Coleção de questões tributárias e fiscais disponíveis para estudo e simulados."
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Coleção de perfis de usuário cadastrados no sistema."
+    },
+    "/users/{userId}/attempts/{attemptId}": {
+      "schema": { "$ref": "#/entities/QuestionAttempt" },
+      "description": "Histórico de tentativas e resoluções do usuário."
+    },
+    "/users/{userId}/favorites/{questionId}": {
+      "schema": { "$ref": "#/entities/UserFavorite" },
+      "description": "Favoritos e anotações pessoais do usuário por questão."
+    },
+    "/users/{userId}/sessions/{sessionId}": {
+      "schema": { "$ref": "#/entities/StudySession" },
+      "description": "Sessões ativas e finalizadas do usuário."
+    },
+    "/imports/{batchId}": {
+      "schema": { "$ref": "#/entities/ImportBatch" },
+      "description": "Histórico de auditoria e lotes de importação JSON."
+    }
+  }
+}
