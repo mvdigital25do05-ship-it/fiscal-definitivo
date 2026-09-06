@@ -28,6 +28,17 @@ export default function App() {
 
   // Active Session state
   const [activeSession, setActiveSession] = useState<StudySession | null>(null);
+  const [sessionsCache, setSessionsCache] = useState<Record<string, StudySession>>({});
+  const [sessionKeys, setSessionKeys] = useState<Record<string, string>>(() => {
+    try {
+      const stored = localStorage.getItem('fiscal_session_keys');
+      return stored ? JSON.parse(stored) : {};
+    } catch (e) { return {}; }
+  });
+
+  const getSessionCacheKey = (f: any) => {
+    return `${f.volume || 'todas'}-${f.caderno || 'todos'}-${f.topic || 'todos'}-${f.difficulty || 'todas'}-${f.type || 'todas'}-${f.personalStatus || 'todas'}-${f.order || 'aleatoria'}-${f.mode || 'study'}`;
+  };
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [totalQuestionsCount, setTotalQuestionsCount] = useState<number>(0);
 
@@ -58,11 +69,40 @@ export default function App() {
         ...customFilters,
       };
 
+      const cacheKey = getSessionCacheKey(defaultFilters);
+
+      if (!defaultFilters.forceShuffle) {
+        if (sessionsCache[cacheKey]) {
+          setActiveSession(sessionsCache[cacheKey]);
+          setIsLoadingSession(false);
+          return;
+        }
+        
+        const storedId = sessionKeys[cacheKey];
+        if (storedId) {
+          try {
+            const restored = await api.getSession(storedId);
+            if (restored && restored.questions.length > 0) {
+              setSessionsCache(prev => ({ ...prev, [cacheKey]: restored }));
+              setActiveSession(restored);
+              setIsLoadingSession(false);
+              return;
+            }
+          } catch(e) {}
+        }
+      }
+
       const session = await api.createSession({
         userId,
         filters: defaultFilters,
       });
 
+      setSessionsCache(prev => ({ ...prev, [cacheKey]: session }));
+      setSessionKeys(prev => {
+        const next = { ...prev, [cacheKey]: session.id };
+        localStorage.setItem('fiscal_session_keys', JSON.stringify(next));
+        return next;
+      });
       setActiveSession(session);
       await refreshQuestionsCount();
     } catch (err: any) {
@@ -153,7 +193,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFCF8] text-[#1A1A1A] flex flex-col font-sans antialiased selection:bg-[#1C1917] selection:text-[#FAF8F5]">
+    <div className="min-h-screen bg-[#f4f6f8] text-[#1A1A1A] flex flex-col font-sans antialiased selection:bg-[#1C1917] selection:text-[#FAF8F5]">
       {/* Sleek Top Navigation */}
       <Navbar
         user={user}
@@ -165,13 +205,27 @@ export default function App() {
       />
 
       {/* Main Content Workspace */}
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0 max-w-7xl mx-auto w-full">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0 max-w-6xl mx-auto w-full">
         {currentView === 'study' && (
           <StudyView
             session={activeSession}
             userId={userId}
             userEmail={user?.email}
-            onUpdateSession={(updated) => setActiveSession(updated)}
+            onUpdateSession={(updated) => {
+              setActiveSession(updated);
+              if (updated.filters) {
+                const cacheKey = getSessionCacheKey(updated.filters);
+                setSessionsCache(prev => ({ ...prev, [cacheKey]: updated }));
+              }
+              // Sync backend
+              if (updated.id) {
+                api.syncSessionState(updated.id, {
+                  currentIndex: updated.currentIndex,
+                  bookmarked: updated.bookmarked,
+                  needsReview: updated.needsReview
+                }).catch(console.error);
+              }
+            }}
             onNavigateToImport={() => setCurrentView('import')}
             onNavigateToDisciplines={() => setCurrentView('disciplines')}
             onReloadSession={loadStudySession}

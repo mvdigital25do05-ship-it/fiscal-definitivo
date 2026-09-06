@@ -1,0 +1,23 @@
+[
+  {
+    "id": "batch_1787671408040_4vrp",
+    "batchId": "batch_1787671408040_4vrp",
+    "schemaVersion": "1.0",
+    "datasetName": "Test Import",
+    "importedBy": "Admin",
+    "timestamp": 1787671408065,
+    "totalQuestions": 1,
+    "totalProcessed": 1,
+    "insertedCount": 1,
+    "createdCount": 1,
+    "updatedCount": 0,
+    "ignoredCount": 0,
+    "skippedCount": 0,
+    "errorCount": 0,
+    "errors": [],
+    "warnings": [],
+    "questionIds": [
+      "CE-0001"
+    ]
+  }
+]

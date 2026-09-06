@@ -263,7 +263,7 @@ async function persistSession(session: StudySession) {
   sessionsMap.set(session.id, session);
   saveDiskFile('sessions_db.json', Array.from(sessionsMap.values()));
   if (firestoreDb) {
-    setDoc(doc(firestoreDb, 'users', session.userId, 'sessions', session.id), cleanForFirestore(session)).catch(e => console.warn(`Firestore error saving session ${session.id}:`, e));
+    setDoc(doc(firestoreDb, 'users', session.userId, 'sessions', session.id), cleanForFirestore({ ...session, questions: [] })).catch(e => console.warn(`Firestore error saving session ${session.id}:`, e));
   }
 }
 
@@ -397,6 +397,8 @@ async function bootstrapDatabase() {
   // 7. Load Questions from Disk and Firestore
   const diskQuestions = readDiskFile<Question[]>('questions_db.json', []);
   const deletedQuestionIds = readDiskFile<string[]>('deleted_questions_db.json', []);
+  const diskSequences = readDiskFile<[string, string[]][]>('caderno_sequences_db.json', []);
+  diskSequences.forEach(([k, v]) => cadernoSequencesMap.set(k, v));
   const deletedSet = new Set(deletedQuestionIds);
 
   if (diskQuestions.length > 0) {
@@ -809,6 +811,10 @@ async function startServer() {
       // 1. Generate or fetch base sequence for this caderno
       const seqKey = `seq_${uid}_${filters.volume || 'todas'}_${filters.caderno || 'todos'}`;
       
+      if (filters.forceShuffle) {
+        cadernoSequencesMap.delete(seqKey);
+      }
+      
       if (!cadernoSequencesMap.has(seqKey)) {
         // Generate a sequence of ALL questions for this caderno to ensure stability across topics
         let baseQuestions = Array.from(questionsMap.values()).filter((q) => q.status !== 'desativada');
@@ -925,6 +931,21 @@ async function startServer() {
   });
 
   // 6. Submit Answer (Gabarito Seguro no servidor)
+  // Sync Session State
+  app.post("/api/questions/session/:sessionId/sync", (req, res) => {
+    const { sessionId } = req.params;
+    const { currentIndex, bookmarked, needsReview } = req.body;
+    const session = sessionsMap.get(sessionId);
+    if (session) {
+      if (currentIndex !== undefined) session.currentIndex = currentIndex;
+      if (bookmarked !== undefined) session.bookmarked = bookmarked;
+      if (needsReview !== undefined) session.needsReview = needsReview;
+      persistSession(session);
+      return res.json({ success: true });
+    }
+    res.status(404).json({ error: "Sessão não encontrada" });
+  });
+
   app.post('/api/questions/submit-answer', async (req, res) => {
     const { sessionId, questionId, questionVersion, selectedAnswer, responseTimeSeconds, mode, userId } =
       req.body;

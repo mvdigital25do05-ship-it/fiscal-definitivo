@@ -1,0 +1,1 @@
+sed -i -e 's/setDoc(doc(firestoreDb, '"'"'users'"'"', session.userId, '"'"'sessions'"'"', session.id), cleanForFirestore(session))/setDoc(doc(firestoreDb, '"'"'users'"'"', session.userId, '"'"'sessions'"'"', session.id), cleanForFirestore({ ...session, questions: [] }))/' server.ts

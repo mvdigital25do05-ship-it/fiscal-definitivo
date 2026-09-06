@@ -149,6 +149,7 @@ export interface SessionFilters {
   personalStatus?: PersonalStatusFilter;
   count?: number;
   order?: OrderFilter;
+  forceShuffle?: boolean;
   mode?: 'study' | 'simulado';
   timeLimitMinutes?: number; // 0 for unlimited
 }

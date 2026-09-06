@@ -221,5 +221,44 @@
   [
     "test",
     []
+  ],
+  [
+    "test-user",
+    [
+      {
+        "id": "attempt_1787669815157_8whr",
+        "userId": "test-user",
+        "questionId": "CE-V01-Q0001",
+        "questionVersion": 1,
+        "selectedAnswer": "a",
+        "isCorrect": false,
+        "mode": "study",
+        "sessionId": "session_1787669814879_ok9zv",
+        "timestamp": 1787669815158,
+        "responseTimeSeconds": 0,
+        "volume": "Conhecimentos Específicos",
+        "topic": "Fundamentos da fiscalização e poder de polícia",
+        "subtopic": "Mapa normativo e método de interpretação",
+        "difficulty": "media",
+        "type": "lei_seca"
+      },
+      {
+        "id": "attempt_1787669829008_ox4m",
+        "userId": "test-user",
+        "questionId": "CE-V01-Q0001",
+        "questionVersion": 1,
+        "selectedAnswer": "a",
+        "isCorrect": false,
+        "mode": "study",
+        "sessionId": "session_1787669828708_liwjb",
+        "timestamp": 1787669829008,
+        "responseTimeSeconds": 0,
+        "volume": "Conhecimentos Específicos",
+        "topic": "Fundamentos da fiscalização e poder de polícia",
+        "subtopic": "Mapa normativo e método de interpretação",
+        "difficulty": "media",
+        "type": "lei_seca"
+      }
+    ]
   ]
 ]

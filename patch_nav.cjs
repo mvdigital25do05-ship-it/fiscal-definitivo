@@ -1,4 +1,6 @@
-import React from 'react';
+const fs = require('fs');
+
+const content = `import React from 'react';
 import { User as UserIcon, LogOut, ChevronDown, HelpCircle } from 'lucide-react';
 import type { UserProfile } from '../types';
 
@@ -77,14 +79,18 @@ const NavTab = ({ label, isActive, onClick, hasDropdown }: { label: string, isAc
   return (
     <button
       onClick={onClick}
-      className={`px-4 py-2.5 text-xs font-semibold tracking-wide flex items-center gap-1 cursor-pointer transition-colors uppercase ${
+      className={\`px-4 py-2.5 text-xs font-semibold tracking-wide flex items-center gap-1 cursor-pointer transition-colors uppercase \${
         isActive 
           ? 'text-[#258bd5] border-b-[3px] border-[#258bd5] bg-[#f4f6f8] rounded-t-sm' 
           : 'text-[#a4b7c6] hover:text-white border-b-[3px] border-transparent'
-      }`}
+      }\`}
     >
       {label}
       {hasDropdown && <ChevronDown className="w-3 h-3 opacity-70" />}
     </button>
   );
 };
+`;
+
+fs.writeFileSync('src/components/Navbar.tsx', content, 'utf8');
+console.log('Navbar updated');

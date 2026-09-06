@@ -1,26 +1,38 @@
 const fs = require('fs');
 let code = fs.readFileSync('src/views/StudyView.tsx', 'utf8');
 
-const missingLoad = `          if (meta.topicsByVolume) {
-            setTopicsByVolume(meta.topicsByVolume);
-            const allTopsSet = new Set<string>();
-            Object.values(meta.topicsByVolume).forEach((topList) => {
-              topList.forEach((t) => allTopsSet.add(t));
-            });
-            setAllTopics(Array.from(allTopsSet));
-          }`;
+const anchorNext = `  const handleNext = () => {
+    if (currentIndex < total - 1) {
+      setCurrentIndex((prev) => prev + 1);
+    }
+  };`;
+const replaceNext = `  const handleNext = () => {
+    if (currentIndex < total - 1) {
+      const newIndex = currentIndex + 1;
+      setCurrentIndex(newIndex);
+      onUpdateSession({ ...session, currentIndex: newIndex });
+    }
+  };`;
 
-const replacementLoad = `          if (meta.topicsByVolumeCaderno) {
-            setTopicsByVolumeCaderno(meta.topicsByVolumeCaderno);
-          }
-          if (meta.topicsByVolume) {
-            setTopicsByVolume(meta.topicsByVolume);
-            const allTopsSet = new Set<string>();
-            Object.values(meta.topicsByVolume).forEach((topList: any) => {
-              topList.forEach((t: string) => allTopsSet.add(t));
-            });
-            setAllTopics(Array.from(allTopsSet));
-          }`;
+const anchorPrev = `  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex((prev) => prev - 1);
+    }
+  };`;
+const replacePrev = `  const handlePrev = () => {
+    if (currentIndex > 0) {
+      const newIndex = currentIndex - 1;
+      setCurrentIndex(newIndex);
+      onUpdateSession({ ...session, currentIndex: newIndex });
+    }
+  };`;
 
-code = code.replace(missingLoad, replacementLoad);
+const anchorMap = `            onSelectIndex={(idx) => setCurrentIndex(idx)}`;
+const replaceMap = `            onSelectIndex={(idx) => {
+              setCurrentIndex(idx);
+              onUpdateSession({ ...session, currentIndex: idx });
+            }}`;
+
+code = code.replace(anchorNext, replaceNext).replace(anchorPrev, replacePrev).replace(anchorMap, replaceMap);
 fs.writeFileSync('src/views/StudyView.tsx', code);
+console.log('StudyView.tsx patched for currentIndex persistence');

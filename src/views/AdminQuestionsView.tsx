@@ -206,7 +206,7 @@ export const AdminQuestionsView: React.FC = () => {
     setIsNew(true);
     setChangeNote('Criação de nova questão');
     setEditingQuestion({
-      id: `trib-${Date.now().toString().slice(-4)}`,
+      id: `trib-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
       version: 1,
       volume: 'Direito Tributário',
       topic: 'Crédito Tributário',
@@ -821,8 +821,8 @@ export const AdminQuestionsView: React.FC = () => {
                         })
                       }
                       className="flex-1 border border-[#EAE6DF] rounded-lg p-2 text-[#1A1A1A] font-editorial-serif focus:outline-hidden focus:ring-1 focus:ring-[#1C1917]"
-                      placeholder={`Texto da alternativa ${key}...`}
-                      required
+                      placeholder={`Texto da alternativa ${key}...${key === 'E' ? ' (Opcional)' : ''}`}
+                      required={key !== 'E'}
                     />
                     <label className="flex items-center gap-1.5 text-xs font-mono font-semibold text-[#1C1917] cursor-pointer pt-2 shrink-0">
                       <input

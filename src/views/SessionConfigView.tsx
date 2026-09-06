@@ -99,12 +99,16 @@ export const SessionConfigView: React.FC<Props> = ({
       return meta.cadernosByVolume?.[volume] || [];
     }
     const all = new Set<string>();
-    Object.values(meta.cadernosByVolume || {}).forEach(cads => cads.forEach(c => all.add(c)));
+    Object.values(meta.cadernosByVolume || {}).forEach((cads: any) => {
+      if (Array.isArray(cads)) {
+        cads.forEach((c: string) => all.add(c));
+      }
+    });
     return Array.from(all);
   }, [volume, meta.cadernosByVolume]);
 
   const availableTopics = React.useMemo(() => {
-        if (volume && volume !== 'todas') {
+    if (volume && volume !== 'todas') {
       if (caderno && caderno !== 'todos') {
          return meta.topicsByVolumeCaderno?.[volume]?.[caderno] || [];
       }
@@ -123,8 +127,10 @@ export const SessionConfigView: React.FC<Props> = ({
     
     const allTopics = new Set<string>();
     if (meta.topicsByVolume) {
-      Object.values(meta.topicsByVolume).forEach(topList => {
-        topList.forEach(t => allTopics.add(t));
+      Object.values(meta.topicsByVolume).forEach((topList: any) => {
+        if (Array.isArray(topList)) {
+          topList.forEach((t: string) => allTopics.add(t));
+        }
       });
     }
     return Array.from(allTopics);

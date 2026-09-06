@@ -81,6 +81,14 @@ export const api = {
   },
 
   // Submit single answer
+  syncSessionState: async (sessionId: string, state: { currentIndex?: number, bookmarked?: any, needsReview?: any }): Promise<void> => {
+    await fetch(`/api/questions/session/${sessionId}/sync`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(state)
+    });
+  },
+
   submitAnswer: async (params: {
     sessionId: string;
     questionId: string;

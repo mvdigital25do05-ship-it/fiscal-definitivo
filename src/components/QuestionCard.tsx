@@ -1,21 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Star,
-  History,
-  Flag,
-  AlertCircle,
-  CheckCircle2,
-  XCircle,
-  BookOpen,
-  Scale,
-  Sparkles,
-  ChevronRight,
-  ChevronLeft,
-  ScrollText,
-  Trash2,
-} from 'lucide-react';
+import { Share2, Printer, CheckCircle2, XCircle, Settings, Shuffle, BarChart2, MessageSquare, GraduationCap, Book, Star, Edit2, Play, Repeat, Search, CornerUpLeft, ArrowLeft, ArrowRight, CornerDownRight, Share } from 'lucide-react';
 import type { SanitizedQuestion, OptionKey, SessionAnswerState } from '../types';
-import { QuestionHistoryModal } from './QuestionHistoryModal';
 
 interface Props {
   question: SanitizedQuestion;
@@ -38,6 +23,8 @@ interface Props {
   hasNext?: boolean;
   isSubmitting?: boolean;
   userId?: string;
+  globalCorrect?: number;
+  globalWrong?: number;
 }
 
 const OPTION_KEYS: OptionKey[] = ['A', 'B', 'C', 'D', 'E'];
@@ -63,19 +50,13 @@ export const QuestionCard: React.FC<Props> = ({
   hasNext = false,
   userId,
   isSubmitting = false,
+  globalCorrect = 15,
+  globalWrong = 2,
 }) => {
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [eliminatedOpts, setEliminatedOpts] = useState<Record<string, boolean>>({});
-  const clickTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const [selectedOpt, setSelectedOpt] = useState<OptionKey | null>(
     (answerState?.selectedAnswer as OptionKey) || question.userAnswer || null
   );
-
-  useEffect(() => {
-    setEliminatedOpts({});
-  }, [question.id]);
-
-  // Sync selected option when question changes
+  
   useEffect(() => {
     setSelectedOpt((answerState?.selectedAnswer as OptionKey) || question.userAnswer || null);
   }, [question.id, answerState?.selectedAnswer, question.userAnswer]);
@@ -84,432 +65,230 @@ export const QuestionCard: React.FC<Props> = ({
   const showFullResolution = isAnsweredInStudy || isFinished;
   const correctAnswer = answerState?.correctAnswer || question.answer;
 
-  // Keyboard shortcut listener
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore when typing inside input/textarea
-      const target = e.target as HTMLElement;
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
-        return;
-      }
-
-      const key = e.key.toUpperCase();
-      if (['A', 'B', 'C', 'D', 'E'].includes(key)) {
-        if (!showFullResolution || mode === 'simulado') {
-          setSelectedOpt(key as OptionKey);
-          onSelectOption(key as OptionKey);
-        }
-      } else if (['1', '2', '3', '4', '5'].includes(e.key)) {
-        const mapNum: Record<string, OptionKey> = { '1': 'A', '2': 'B', '3': 'C', '4': 'D', '5': 'E' };
-        const mapped = mapNum[e.key];
-        if (!showFullResolution || mode === 'simulado') {
-          setSelectedOpt(mapped);
-          onSelectOption(mapped);
-        }
-      } else if (e.key === 'Enter') {
-        if (selectedOpt && (!showFullResolution || mode === 'simulado') && !isSubmitting) {
-          onSubmitAnswer(selectedOpt);
-        }
-      } else if (e.key === 'ArrowRight' && hasNext && onNext) {
-        onNext();
-      } else if (e.key === 'ArrowLeft' && hasPrev && onPrev) {
-        onPrev();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedOpt, showFullResolution, mode, isSubmitting, hasNext, hasPrev, onNext, onPrev, onSelectOption, onSubmitAnswer]);
-
   const handleOptionClick = (key: OptionKey) => {
     if (showFullResolution && mode === 'study') return;
-    
-    // If the option is already eliminated, a single click restores it immediately
-    if (eliminatedOpts[key]) {
-      if (clickStateRef.current.timeout) {
-        clearTimeout(clickStateRef.current.timeout);
-        clickStateRef.current.timeout = null;
-        clickStateRef.current.key = null;
-      }
-      setEliminatedOpts(prev => ({ ...prev, [key]: false }));
-      return;
-    }
-
-    if (clickStateRef.current.timeout && clickStateRef.current.key === key) {
-      // Double click detected on the SAME option -> Eliminate it
-      clearTimeout(clickStateRef.current.timeout);
-      clickStateRef.current.timeout = null;
-      clickStateRef.current.key = null;
-      setEliminatedOpts(prev => ({ ...prev, [key]: true }));
-    } else {
-      // If there's a pending click on ANOTHER option, trigger it immediately
-      if (clickStateRef.current.timeout && clickStateRef.current.key && clickStateRef.current.key !== key) {
-        clearTimeout(clickStateRef.current.timeout);
-        setSelectedOpt(clickStateRef.current.key as OptionKey);
-        onSelectOption(clickStateRef.current.key as OptionKey);
-      }
-      
-      // Single click detected -> Wait to see if it's a double click
-      clickStateRef.current.key = key;
-      clickStateRef.current.timeout = setTimeout(() => {
-        clickStateRef.current.timeout = null;
-        clickStateRef.current.key = null;
-        setSelectedOpt(key);
-        onSelectOption(key);
-      }, 250);
+    setSelectedOpt(key);
+    onSelectOption(key);
+    // Auto submit behavior similar to previous version, though Tec requires clicking responder? No, we auto submit on select for study mode for ease.
+    if (!isSubmitting) {
+        onSubmitAnswer(key);
     }
   };
 
-  const handleConfirm = () => {
-    if (selectedOpt && !isSubmitting) {
-      onSubmitAnswer(selectedOpt);
-    }
-  };
-
-  const getDifficultyBadge = (diff: string) => {
-    switch (diff) {
-      case 'facil':
-        return <span className="px-2 py-0.5 text-[11px] font-medium bg-[#F0FDF4] text-[#166534] border border-[#BBF7D0] rounded-md font-mono">Fácil</span>;
-      case 'dificil':
-        return <span className="px-2 py-0.5 text-[11px] font-medium bg-[#FEF2F2] text-[#991B1B] border border-[#FECACA] rounded-md font-mono">Difícil</span>;
-      default:
-        return <span className="px-2 py-0.5 text-[11px] font-medium bg-[#FFFBEB] text-[#92400E] border border-[#FDE68A] rounded-md font-mono">Média</span>;
-    }
-  };
-
-  const getTypeLabel = (t: string) => {
-    const labels: Record<string, string> = {
-      lei_seca: 'Lei Seca',
-      conceitual: 'Doutrina / Conceitual',
-      caso_pratico: 'Caso Prático',
-      integracao: 'Integração de Conteúdo',
-      prazo_numero: 'Prazos e Números',
-      assertivas: 'Assertivas I-II-III',
-    };
-    return labels[t] || t;
-  };
+  const totalResolvidas = globalCorrect + globalWrong;
 
   return (
-    <div id={`question-card-${question.id}`} className="bg-white rounded-xl border border-[#EAE6DF] shadow-[0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden">
-      {/* Top Header Bar */}
-      <div className="px-5 py-3.5 bg-[#FAF8F5] border-b border-[#EAE6DF] flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-mono font-bold text-[#1C1917] bg-[#EAE5D9] px-2.5 py-1 rounded-md border border-[#D6CEBE]">
-            Questão {questionNumber} de {totalQuestions}
-          </span>
-          <span className="text-xs font-semibold text-[#1A1A1A]">{question.volume}</span>
-          {question.caderno && (
-            <>
-              <span className="text-[#A8A29E]">•</span>
-              <span className="text-xs font-medium text-[#B45309] bg-[#FFFBEB] px-2 py-0.5 rounded border border-[#FDE68A]">{question.caderno}</span>
-            </>
-          )}
-          <span className="text-[#A8A29E]">•</span>
-          <span className="text-xs text-[#57534E] font-medium">{question.topic}</span>
-          {question.subtopic && (
-            <>
-              <span className="text-[#A8A29E]">•</span>
-              <span className="text-xs text-[#78716C]">{question.subtopic}</span>
-            </>
-          )}
+    <div id={`question-card-${question.id}`} className="bg-white rounded border border-[#e2e2e2] shadow-sm flex flex-col font-sans mb-10">
+      
+      {/* Tabs / Tools Header */}
+      <div className="flex items-center gap-6 px-4 py-3 border-b border-[#e2e2e2] text-[#4ea1d3] text-sm">
+        <div className="flex items-center gap-2 font-bold cursor-pointer border-b-2 border-[#4ea1d3] pb-3 -mb-3">
+          <span className="w-4 h-4 rounded-full bg-[#4ea1d3] text-white flex items-center justify-center text-[10px]">Q</span>
+          Questões
         </div>
-
-        {/* Action icons & Top Confirm Button */}
-        <div className="flex items-center gap-1.5">
-          {mode === 'study' && !showFullResolution && (
-            <button
-              type="button"
-              id={`submit-answer-btn-top-${question.id}`}
-              onClick={handleConfirm}
-              disabled={!selectedOpt || isSubmitting}
-              className="px-3.5 py-1.5 bg-[#1C1917] hover:bg-[#292524] disabled:opacity-40 text-[#FAF8F5] rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer mr-1"
-            >
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#22C55E]" />
-              <span>{isSubmitting ? 'Validando...' : 'Confirmar Resposta'}</span>
-            </button>
-          )}
-
-          <button
-            id={`bookmark-btn-${question.id}`}
-            onClick={onToggleBookmark}
-            title={isBookmarked ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-            className={`p-1.5 rounded-lg border text-xs transition-colors flex items-center gap-1 cursor-pointer ${
-              isBookmarked
-                ? 'bg-[#FEF3C7] text-[#92400E] border-[#FDE68A]'
-                : 'bg-white text-[#78716C] hover:text-[#B45309] hover:bg-[#FAF8F5] border-[#EAE6DF]'
-            }`}
-          >
-            <Star className={`w-3.5 h-3.5 ${isBookmarked ? 'fill-[#D97706] text-[#D97706]' : ''}`} />
-            <span className="hidden sm:inline text-[11px] font-medium">{isBookmarked ? 'Favorita' : 'Favoritar'}</span>
-          </button>
-
-          <button
-            id={`review-btn-${question.id}`}
-            onClick={onToggleReview}
-            title={needsReview ? 'Remover marcação de revisão' : 'Marcar para revisar depois'}
-            className={`p-1.5 rounded-lg border text-xs transition-colors flex items-center gap-1 cursor-pointer ${
-              needsReview
-                ? 'bg-[#EEF2FF] text-[#3730A3] border-[#C7D2FE]'
-                : 'bg-white text-[#78716C] hover:text-[#4338CA] hover:bg-[#FAF8F5] border-[#EAE6DF]'
-            }`}
-          >
-            <Flag className={`w-3.5 h-3.5 ${needsReview ? 'fill-[#4338CA] text-[#4338CA]' : ''}`} />
-            <span className="hidden sm:inline text-[11px] font-medium">{needsReview ? 'Revisando' : 'Revisar'}</span>
-          </button>
-
-          <button
-            id={`report-btn-${question.id}`}
-            onClick={onOpenReport}
-            title="Reportar problema nesta questão"
-            className="p-1.5 rounded-lg border bg-white border-[#EAE6DF] text-[#78716C] hover:text-[#1A1A1A] hover:bg-[#FAF8F5] transition-colors cursor-pointer"
-          >
-            <AlertCircle className="w-3.5 h-3.5" />
-          </button>
-
-          {userId && (
-            <>
-              <button
-                id={`history-btn-${question.id}`}
-                onClick={() => setIsHistoryOpen(true)}
-                title="Ver histórico desta questão"
-                className="p-1.5 rounded-lg border bg-white border-[#EAE6DF] text-[#78716C] hover:text-[#1A1A1A] hover:bg-[#FAF8F5] transition-colors cursor-pointer"
-              >
-                <History className="w-3.5 h-3.5" />
-              </button>
-              <QuestionHistoryModal
-                isOpen={isHistoryOpen}
-                onClose={() => setIsHistoryOpen(false)}
-                questionId={question.id}
-                userId={userId}
-              />
-            </>
-          )}
-
-          {onDeleteQuestion && (
-            <button
-              id={`delete-question-btn-${question.id}`}
-              onClick={() => onDeleteQuestion(question)}
-              title="Excluir esta questão"
-              className="p-1.5 rounded-lg border bg-white border-[#EAE6DF] text-[#A8A29E] hover:text-[#B91C1C] hover:bg-[#FEF2F2] hover:border-[#FECACA] transition-colors cursor-pointer"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          )}
+        <div className="flex items-center gap-1.5 cursor-pointer hover:text-[#258bd5]">
+          <BarChart2 className="w-4 h-4" />
+          Índice
+        </div>
+        <div className="flex items-center gap-1.5 cursor-pointer hover:text-[#258bd5]">
+          <BarChart2 className="w-4 h-4" /> {/* Actually it's a pie chart icon for Estatisticas */}
+          Estatísticas
+        </div>
+        <div className="flex items-center gap-1.5 cursor-pointer hover:text-[#258bd5]">
+          <CheckCircle2 className="w-4 h-4" />
+          Gabarito
+        </div>
+        <div className="flex items-center gap-1.5 cursor-pointer hover:text-[#258bd5]">
+          <Settings className="w-4 h-4" />
+          Configurações
+        </div>
+        <div className="flex items-center gap-1.5 cursor-pointer hover:text-[#258bd5]">
+          <Printer className="w-4 h-4" />
+          Imprimir
+        </div>
+        <div className="flex-1"></div>
+        <div className="flex items-center gap-1.5 cursor-pointer hover:text-[#258bd5]">
+          <Share2 className="w-4 h-4" />
+          Compartilhar
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="p-6 space-y-6">
-        {/* Badges & Tags */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {getDifficultyBadge(question.difficulty)}
-          <span className="px-2 py-0.5 text-[11px] font-medium bg-[#FAF8F5] text-[#57534E] rounded-md border border-[#EAE6DF]">
-            {getTypeLabel(question.type)}
-          </span>
-          <span className="text-[11px] font-mono text-[#78716C] bg-[#FAF8F5] px-2 py-0.5 rounded-md border border-[#EAE6DF]">
-            ID: {question.id} (v{question.version})
-          </span>
+      {/* Main Question Info */}
+      <div className="p-5 flex flex-col gap-4">
+        
+        {/* Info Header */}
+        <div className="flex items-start justify-between">
+          <div className="flex gap-4">
+            {/* Coat of arms placeholder */}
+            <div className="w-12 h-14 bg-gray-100 border flex items-center justify-center rounded">
+               <span className="text-xs text-gray-400">Logo</span>
+            </div>
+            <div className="flex flex-col text-sm">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-[#333333]">Questão {questionNumber} de {totalQuestions}</span>
+                <span className="text-[11px] text-[#777777]">({totalResolvidas} Resolvidas, <span className="text-[#5cb85c]">{globalCorrect} Acertos</span> e <span className="text-[#d9534f]">{globalWrong} Erros</span>)</span>
+                <XCircle className="w-3.5 h-3.5 text-red-500 cursor-pointer" />
+              </div>
+              <div className="flex items-center gap-1 mt-1 text-[13px]">
+                <span className="text-[#777777]">Matéria:</span>
+                <span className="text-[#4ea1d3] cursor-pointer hover:underline">{question.volume}</span>
+              </div>
+              <div className="flex items-center gap-1 text-[13px]">
+                <span className="text-[#777777]">Assunto:</span>
+                <span className="text-[#4ea1d3] cursor-pointer hover:underline">{question.topic}{question.subtopic ? ` > ${question.subtopic}` : ''}</span>
+                <XCircle className="w-3 h-3 text-red-500 cursor-pointer ml-1" />
+              </div>
+            </div>
+          </div>
+          
+          {/* Action Icons right */}
+          <div className="flex items-center gap-3 text-gray-500">
+            <GraduationCap className="w-6 h-6 hover:text-gray-800 cursor-pointer" />
+            <Book className="w-5 h-5 text-red-500 hover:text-red-700 cursor-pointer fill-red-500" />
+            <div className="relative cursor-pointer">
+              <MessageSquare className="w-5 h-5 text-blue-500 fill-blue-500 hover:text-blue-700" />
+              <span className="absolute -bottom-2 -right-2 bg-green-500 text-white text-[9px] font-bold px-1 rounded-sm">1</span>
+            </div>
+            <Star className={`w-6 h-6 cursor-pointer ${isBookmarked ? 'text-yellow-400 fill-yellow-400' : 'text-yellow-400 hover:fill-yellow-400'}`} onClick={onToggleBookmark} />
+            <Edit2 className="w-5 h-5 text-purple-500 hover:text-purple-700 cursor-pointer" />
+            <div className="w-5 h-5 border-[3px] border-teal-400 rounded-full cursor-pointer"></div>
+            <div className="flex flex-col gap-[3px] cursor-pointer px-1">
+              <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+              <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+              <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+            </div>
+          </div>
         </div>
 
-        {/* Statement / Enunciado (Editorial Serif Typography) */}
-        <div className="font-editorial-serif text-[17px] sm:text-[18px] leading-[1.7] text-[#1A1A1A] font-normal whitespace-pre-line tracking-normal select-text">
+        {/* Source ID bar */}
+        <div className="flex items-center justify-between bg-[#f9f9f9] border border-[#e2e2e2] px-3 py-2 rounded text-[13px]">
+          <div className="flex items-center gap-2">
+            <Share className="w-3.5 h-3.5 text-gray-500" />
+            <span className="text-[#4ea1d3] font-bold">#{question.id.substring(0,8)}</span>
+            <span className="text-[#333333] font-bold uppercase">{question.caderno || 'INSTITUTO MAIS - 2023'}</span>
+            <XCircle className="w-3.5 h-3.5 text-red-500 cursor-pointer" />
+          </div>
+          <div className="flex items-center gap-1">
+            <button className="p-1 border border-[#e2e2e2] rounded bg-white hover:bg-gray-50 cursor-pointer">
+              <CornerUpLeft className="w-4 h-4 text-gray-600" />
+            </button>
+            <button onClick={onPrev} disabled={!hasPrev} className="p-1 border border-[#e2e2e2] rounded bg-white hover:bg-gray-50 disabled:opacity-50 cursor-pointer">
+              <ArrowLeft className="w-4 h-4 text-gray-600" />
+            </button>
+            <button onClick={onNext} disabled={!hasNext} className="p-1 border border-[#e2e2e2] rounded bg-white hover:bg-gray-50 disabled:opacity-50 cursor-pointer">
+              <ArrowRight className="w-4 h-4 text-gray-600" />
+            </button>
+          </div>
+        </div>
+
+        {/* Statement */}
+        <div className="text-[15px] leading-[1.6] text-[#333] whitespace-pre-wrap mt-2">
           {question.statement}
         </div>
 
-        {/* Options Header & Top Confirm Button */}
-        <div className="flex items-center justify-between gap-2 pt-2 pb-1 border-b border-[#F2EDE4]">
-          <span className="text-xs font-mono font-bold text-[#78716C] uppercase tracking-wider">
-            Opções de Resposta
-          </span>
-
-          {mode === 'study' && !showFullResolution && (
-            <button
-              type="button"
-              id={`submit-answer-btn-above-options-${question.id}`}
-              onClick={handleConfirm}
-              disabled={!selectedOpt || isSubmitting}
-              className="px-4 py-1.5 bg-[#1C1917] hover:bg-[#292524] disabled:opacity-40 text-[#FAF8F5] rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#22C55E]" />
-              <span>{isSubmitting ? 'Validando...' : 'Confirmar Resposta'}</span>
-            </button>
-          )}
-        </div>
-
-        {/* Options A - E */}
-        <div className="space-y-2.5 pt-1">
+        {/* Alternatives */}
+        <div className="flex flex-col gap-1 mt-4">
           {OPTION_KEYS.map((key) => {
-            const text = question.options[key];
-            if (!text) return null;
+            const optText = question.options[key];
+            if (!optText) return null;
 
-            const isSelected = selectedOpt === key;
-            const isEliminated = !!eliminatedOpts[key];
-            const isThisCorrect = correctAnswer === key;
-            const isThisWrongSelected = isSelected && showFullResolution && !isThisCorrect;
-
-            let optionStyle = 'bg-[#FAF8F5] border-[#EAE6DF] hover:bg-[#F2ECE0] hover:border-[#D6CEBE] text-[#1A1A1A]';
-            let badgeStyle = 'bg-[#EAE5D9] text-[#1C1917] border-[#D6CEBE] font-bold';
-
+            let isCorrect = false;
+            let isWrong = false;
             if (showFullResolution) {
-              if (isThisCorrect) {
-                // Correct option in Forest Green
-                optionStyle = 'bg-[#F0FDF4] border-[#86EFAC] text-[#14532D] font-medium ring-1 ring-[#22C55E]';
-                badgeStyle = 'bg-[#15803D] text-white border-[#15803D] font-bold';
-              } else if (isThisWrongSelected) {
-                // Chosen wrong option in Brick Red
-                optionStyle = 'bg-[#FEF2F2] border-[#FCA5A5] text-[#7F1D1D] font-medium ring-1 ring-[#EF4444]';
-                badgeStyle = 'bg-[#B91C1C] text-white border-[#B91C1C] font-bold';
-              } else {
-                optionStyle = 'bg-[#FAF8F5]/60 border-[#EAE6DF] text-[#78716C] opacity-75';
-                badgeStyle = 'bg-[#EAE5D9]/60 text-[#78716C] border-[#EAE6DF] font-medium';
-              }
+              if (key === correctAnswer) isCorrect = true;
+              else if (key === selectedOpt) isWrong = true;
             } else {
-              // During active exam/study before answer
-              if (isSelected) {
-                optionStyle = 'bg-[#F2ECE0] border-[#1C1917] text-[#1C1917] font-medium ring-1 ring-[#1C1917] shadow-2xs';
-                badgeStyle = 'bg-[#1C1917] text-[#FAF8F5] border-[#1C1917] font-bold';
-              }
+               if (key === selectedOpt) {
+                   // if we selected it but it's not checked yet, we just highlight as selected. But here we auto submit, so showFullResolution is true.
+               }
+            }
+
+            let bgClass = "bg-[#f9f9f9]";
+            let textClass = "text-[#333]";
+            
+            if (isCorrect) {
+              bgClass = "bg-[#d4edda]";
+            } else if (isWrong) {
+              bgClass = "bg-[#f8d7da]";
             }
 
             return (
-              <button
+              <div
                 key={key}
-                type="button"
-                id={`option-btn-${question.id}-${key}`}
                 onClick={() => handleOptionClick(key)}
-                disabled={showFullResolution && mode === 'study'}
-                className={`w-full text-left p-3.5 rounded-xl border transition-all flex items-start gap-3.5 group cursor-pointer disabled:cursor-default ${optionStyle} ${isEliminated ? 'opacity-50' : ''}`}
+                className={`flex items-start gap-3 p-2.5 cursor-pointer transition-colors ${bgClass} hover:bg-opacity-80`}
               >
-                <span
-                  className={`w-7 h-7 rounded-lg border flex items-center justify-center text-xs shrink-0 transition-colors font-mono ${badgeStyle}`}
-                >
+                <div className={`w-6 h-6 shrink-0 rounded-full border flex items-center justify-center text-xs ${
+                  isCorrect ? 'border-[#4ea1d3] bg-[#4ea1d3] text-white' : 
+                  (selectedOpt === key && !showFullResolution) ? 'border-[#4ea1d3] bg-[#4ea1d3] text-white' :
+                  'border-gray-300 bg-white text-gray-600'
+                }`}>
                   {key}
-                </span>
-                <span className={`text-sm sm:text-[14.5px] leading-relaxed pt-0.5 flex-1 select-text font-normal ${isEliminated ? 'line-through text-[#A8A29E]' : ''}`}>{text}</span>
-                {showFullResolution && isThisCorrect && (
-                  <CheckCircle2 className="w-5 h-5 text-[#15803D] shrink-0 mt-0.5" />
-                )}
-                {showFullResolution && isThisWrongSelected && (
-                  <XCircle className="w-5 h-5 text-[#B91C1C] shrink-0 mt-0.5" />
-                )}
-              </button>
+                </div>
+                <div className={`text-[14px] pt-[2px] ${textClass}`}>
+                  {optText}
+                </div>
+              </div>
             );
           })}
         </div>
 
-        {/* Action Bar (Confirm / Navigation) */}
-        <div className="pt-4 border-t border-[#EAE6DF] flex flex-wrap items-center justify-between gap-3">
-          <div className="text-xs text-[#78716C] hidden sm:block font-mono">
-            Atalhos: <kbd className="px-1.5 py-0.5 bg-[#FAF8F5] border border-[#D6CEBE] rounded text-[11px] text-[#1C1917]">A-E</kbd> selecionar,{' '}
-            <kbd className="px-1.5 py-0.5 bg-[#FAF8F5] border border-[#D6CEBE] rounded text-[11px] text-[#1C1917]">Enter</kbd> responder
-          </div>
-
-          <div className="flex items-center gap-2 ml-auto w-full sm:w-auto justify-between sm:justify-end">
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                id={`prev-question-btn-${question.id}`}
-                onClick={onPrev}
-                disabled={!hasPrev}
-                className="px-3 py-2 border border-[#EAE6DF] hover:bg-[#F2ECE0] disabled:opacity-30 disabled:pointer-events-none rounded-lg text-xs font-medium text-[#57534E] hover:text-[#1C1917] flex items-center gap-1 transition-colors cursor-pointer"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span>Anterior</span>
-              </button>
-
-              <button
-                type="button"
-                id={`next-question-btn-${question.id}`}
-                onClick={onNext}
-                disabled={!hasNext}
-                className="px-3 py-2 border border-[#EAE6DF] hover:bg-[#F2ECE0] disabled:opacity-30 disabled:pointer-events-none rounded-lg text-xs font-medium text-[#57534E] hover:text-[#1C1917] flex items-center gap-1 transition-colors cursor-pointer"
-              >
-                <span>Próxima</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* In Study mode: button to respond */}
-            {mode === 'study' && !showFullResolution && (
-              <button
-                type="button"
-                id={`submit-answer-btn-${question.id}`}
-                onClick={handleConfirm}
-                disabled={!selectedOpt || isSubmitting}
-                className="px-5 py-2 bg-[#1C1917] hover:bg-[#292524] disabled:opacity-40 text-[#FAF8F5] rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <span>{isSubmitting ? 'Validando...' : 'Confirmar Resposta'}</span>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Server-Validated Feedback & Explanation (Unlocked only post-answer) */}
-        {showFullResolution && (
-          <div
-            id={`resolution-panel-${question.id}`}
-            className="mt-6 pt-6 border-t border-[#EAE6DF] space-y-4 animate-in fade-in slide-in-from-top-2 duration-200"
-          >
-            {/* Success / Error Header */}
-            {answerState?.isCorrect !== undefined && (
-              <div
-                className={`p-4 rounded-xl border flex items-center gap-3 ${
-                  answerState.isCorrect
-                    ? 'bg-[#F0FDF4] border-[#BBF7D0] text-[#14532D]'
-                    : 'bg-[#FEF2F2] border-[#FECACA] text-[#7F1D1D]'
-                }`}
-              >
-                {answerState.isCorrect ? (
-                  <CheckCircle2 className="w-5 h-5 text-[#15803D] shrink-0" />
-                ) : (
-                  <XCircle className="w-5 h-5 text-[#B91C1C] shrink-0" />
-                )}
-                <div>
-                  <div className="font-editorial-heading text-sm font-bold flex items-center gap-2">
-                    <span>{answerState.isCorrect ? 'Resposta Correta' : 'Resposta Incorreta'}</span>
-                    {!answerState.isCorrect && (
-                      <span className="text-[10px] font-mono font-bold bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] px-2 py-0.5 rounded-md flex items-center gap-1">
-                        📕 Registrada no Caderno de Erros
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs opacity-90 mt-0.5">
-                    Gabarito Oficial: <strong className="font-mono text-sm">{correctAnswer}</strong>
-                    {selectedOpt && selectedOpt !== correctAnswer && (
-                      <span> (Você assinalou opção {selectedOpt})</span>
-                    )}
-                  </div>
+        {/* Feedback Message */}
+        {showFullResolution && answerState && (
+          <div className="flex items-center gap-2 mt-4 text-[14px]">
+            {answerState.isCorrect ? (
+              <>
+                <div className="w-5 h-5 rounded-full bg-[#5cb85c] text-white flex items-center justify-center">
+                  <CheckCircle2 className="w-4 h-4" />
                 </div>
-              </div>
-            )}
-
-            {/* Legal Basis / Fundamento */}
-            {(answerState?.legalBasis || question.legalBasis) && (
-              <div className="p-3.5 bg-[#FAF8F5] border-l-4 border-[#B45309] border-y border-r border-[#EAE6DF] rounded-r-xl flex items-start gap-2.5">
-                <Scale className="w-4 h-4 text-[#B45309] shrink-0 mt-0.5" />
-                <div className="text-xs text-[#44403C]">
-                  <span className="font-bold text-[#1C1917]">Fundamentação Legal: </span>
-                  <span className="font-mono text-[#57534E] font-medium">{answerState?.legalBasis || question.legalBasis}</span>
+                <span className="text-[#5cb85c] font-bold">Você acertou!</span>
+                <span className="text-[#333]">Muito bem!</span>
+              </>
+            ) : (
+              <>
+                <div className="w-5 h-5 rounded-full bg-[#d9534f] text-white flex items-center justify-center">
+                  <XCircle className="w-4 h-4" />
                 </div>
-              </div>
+                <span className="text-[#d9534f] font-bold">Você errou!</span>
+              </>
             )}
-
-            {/* Detailed Explanation */}
-            {(answerState?.explanation || question.explanation) && (
-              <div className="p-5 bg-[#FAF8F5] border border-[#EAE6DF] rounded-xl space-y-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#1C1917] uppercase tracking-wide font-editorial-heading">
-                  <BookOpen className="w-4 h-4 text-[#B45309]" />
-                  <span>Comentário & Análise Didática</span>
-                </div>
-                <div className="font-editorial-serif text-[15.5px] leading-[1.7] text-[#292524] whitespace-pre-line font-normal">
-                  {answerState?.explanation || question.explanation}
-                </div>
-              </div>
-            )}
+            <span className="text-[#4ea1d3] cursor-pointer hover:underline ml-1">Ver resolução</span>
           </div>
         )}
+
       </div>
+      
+      {/* Bottom Tool Bar */}
+      <div className="px-5 pb-5 pt-0 flex gap-2">
+        <button onClick={onPrev} disabled={!hasPrev} className="p-1.5 border border-[#e2e2e2] rounded bg-white hover:bg-gray-50 disabled:opacity-50 cursor-pointer">
+          <ArrowLeft className="w-4 h-4 text-gray-600" />
+        </button>
+        <button onClick={onNext} disabled={!hasNext} className="p-1.5 border border-[#e2e2e2] rounded bg-white hover:bg-gray-50 disabled:opacity-50 cursor-pointer">
+          <ArrowRight className="w-4 h-4 text-gray-600" />
+        </button>
+        <button className="p-1.5 border border-[#e2e2e2] rounded bg-white hover:bg-gray-50 cursor-pointer">
+          <Shuffle className="w-4 h-4 text-gray-600" />
+        </button>
+        <button className="p-1.5 border border-[#e2e2e2] rounded bg-white hover:bg-gray-50 cursor-pointer">
+          <CornerDownRight className="w-4 h-4 text-gray-600" />
+        </button>
+        <button className="p-1.5 border border-[#e2e2e2] rounded bg-white hover:bg-gray-50 cursor-pointer">
+          <ArrowLeft className="w-4 h-4 text-gray-600" />
+        </button>
+        <button className="p-1.5 border border-[#e2e2e2] rounded bg-white hover:bg-gray-50 cursor-pointer">
+          <Play className="w-4 h-4 text-gray-600 fill-gray-600" />
+        </button>
+        <button className="p-1.5 border border-[#e2e2e2] rounded bg-white hover:bg-gray-50 cursor-pointer">
+          <Repeat className="w-4 h-4 text-gray-600" />
+        </button>
+        <button className="p-1.5 border border-[#e2e2e2] rounded bg-white hover:bg-gray-50 cursor-pointer">
+          <Star className="w-4 h-4 text-gray-400" />
+        </button>
+        <button className="p-1.5 border border-[#e2e2e2] rounded bg-white hover:bg-gray-50 cursor-pointer">
+          <Edit2 className="w-4 h-4 text-gray-400" />
+        </button>
+      </div>
+
     </div>
   );
 };
-

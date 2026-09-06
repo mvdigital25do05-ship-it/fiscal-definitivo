@@ -1,0 +1,45 @@
+[
+  [
+    "CE-0001",
+    [
+      {
+        "versionId": "CE-0001_v1",
+        "questionId": "CE-0001",
+        "version": 1,
+        "dataSnapshot": {
+          "id": "CE-0001",
+          "version": 1,
+          "volume": "Conhecimentos Específicos",
+          "caderno": "Sem caderno",
+          "topic": "Atividade prática do fiscal",
+          "subtopic": "Formação da prova administrativa",
+          "difficulty": "media",
+          "type": "lei_seca",
+          "status": "revisada",
+          "statement": "Durante uma fiscalização tributária de rotina...",
+          "options": {
+            "A": "O auditor não pode lavrar...",
+            "B": "A apreensão de documentos...",
+            "C": "A recusa de exibição...",
+            "D": "Os termos de fiscalização...",
+            "E": "A prova colhida..."
+          },
+          "answer": "B",
+          "explanation": "Nos termos da legislação...",
+          "legalBasis": "Arts. 142, 195 e 200...",
+          "tags": [
+            "Conhecimentos Específicos",
+            "Atividade prática do fiscal"
+          ],
+          "createdAt": 1787671408040,
+          "updatedAt": 1787671408040,
+          "isCustom": true,
+          "batchId": "batch_1787671408040_4vrp"
+        },
+        "timestamp": 1787671408040,
+        "changedBy": "Importador Oficial JSON",
+        "changeNote": "Importado no lote Test Import"
+      }
+    ]
+  ]
+]
